@@ -4,6 +4,7 @@ const vscode = require('vscode');
 const LOAD = 'Load from disk';
 const KEEP = 'Keep memory changes';
 const COMPARE = 'Compare';
+const SETTLE_MS = 100;
 
 /**
  * @param {vscode.ExtensionContext} context
@@ -11,10 +12,21 @@ const COMPARE = 'Compare';
 function activate(context) {
     /** @type {Set<string>} */
     const prompting = new Set();
+    /** @type {Map<string, ReturnType<typeof setTimeout>>} */
+    const pending = new Map();
     const watcher = vscode.workspace.createFileSystemWatcher('**/*', true, false, true);
 
-    watcher.onDidChange((uri) => onDiskChange(uri, prompting));
-    context.subscriptions.push(watcher);
+    // One write can fire several change events (Linux: truncate, then write); handle the burst once, after it settles
+    watcher.onDidChange((uri) => {
+        const key = uri.toString();
+        clearTimeout(pending.get(key));
+        pending.set(key, setTimeout(() => {
+            pending.delete(key);
+            onDiskChange(uri, prompting);
+        }, SETTLE_MS));
+    });
+
+    context.subscriptions.push(watcher, { dispose: () => pending.forEach(clearTimeout) });
 }
 
 /**
