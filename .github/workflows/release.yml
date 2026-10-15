@@ -10,26 +10,37 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      # Job level, so the publish steps can test for them in their `if`
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
+      - name: Check that the tag matches the package.json version
+        run: |
+          version="v$(node -p "require('./package.json').version")"
+          if [ "$GITHUB_REF_NAME" != "$version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $version"
+            exit 1
+          fi
       - run: npm ci
+      - run: npm run lint
       - run: xvfb-run -a npm test
-      - run: npx vsce package --out file-changed-on-disk.vsix
+      - name: Package the .vsix
+        run: |
+          npx vsce package
+          echo "VSIX=$(ls -- *.vsix)" >> "$GITHUB_ENV"
       - name: Attach the .vsix to a GitHub release
-        run: gh release create "$GITHUB_REF_NAME" file-changed-on-disk.vsix --generate-notes
+        run: gh release create "$GITHUB_REF_NAME" "$VSIX" --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}
       - name: Publish to Open VSX
         if: env.OVSX_PAT != ''
-        run: npx ovsx publish file-changed-on-disk.vsix -p "$OVSX_PAT"
-        env:
-          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: npx --yes ovsx@1.2.0 publish "$VSIX" -p "$OVSX_PAT"
       - name: Publish to the VS Code Marketplace
         if: env.VSCE_PAT != ''
-        run: npx vsce publish --packagePath file-changed-on-disk.vsix -p "$VSCE_PAT"
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: npx vsce publish --packagePath "$VSIX" -p "$VSCE_PAT"
