@@ -1,0 +1,35 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: xvfb-run -a npm test
+      - run: npx vsce package --out file-changed-on-disk.vsix
+      - name: Attach the .vsix to a GitHub release
+        run: gh release create "$GITHUB_REF_NAME" file-changed-on-disk.vsix --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Publish to Open VSX
+        if: env.OVSX_PAT != ''
+        run: npx ovsx publish file-changed-on-disk.vsix -p "$OVSX_PAT"
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+      - name: Publish to the VS Code Marketplace
+        if: env.VSCE_PAT != ''
+        run: npx vsce publish --packagePath file-changed-on-disk.vsix -p "$VSCE_PAT"
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}

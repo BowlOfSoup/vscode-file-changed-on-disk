@@ -1,0 +1,60 @@
+{
+  "name": "file-changed-on-disk",
+  "displayName": "File Changed on Disk: Reload or Keep",
+  "description": "JetBrains-style prompt when a file you are editing is changed on disk by git, a formatter or an AI agent (Claude Code, Codex, Cursor): load from disk, keep your changes, or compare.",
+  "version": "0.1.0",
+  "publisher": "BowlOfSoup",
+  "license": "MIT",
+  "icon": "images/icon.png",
+  "author": "BowlOfSoup",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BowlOfSoup/file-changed-on-disk.git"
+  },
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "file changed on disk",
+    "external changes",
+    "reload",
+    "unsaved changes",
+    "conflict",
+    "jetbrains",
+    "ai agent",
+    "claude code",
+    "codex",
+    "cursor"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./src/extension.js",
+  "scripts": {
+    "lint": "eslint .",
+    "test": "vscode-test",
+    "package": "vsce package",
+    "vscode:prepublish": "npm run lint",
+    "test:vscodium": "VSCODE_TEST_PATH=/Applications/VSCodium.app/Contents/MacOS/VSCodium vscode-test"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/mocha": "10.0.10",
+    "@types/node": "20.19.43",
+    "@types/vscode": "1.80.0",
+    "@vscode/test-cli": "0.0.15",
+    "@vscode/test-electron": "3.1.0",
+    "@vscode/vsce": "4.0.0",
+    "eslint": "10.12.0",
+    "globals": "17.13.0",
+    "mocha": "12.0.3",
+    "ovsx": "1.2.0"
+  },
+  "bugs": {
+    "url": "https://github.com/BowlOfSoup/file-changed-on-disk/issues"
+  },
+  "homepage": "https://github.com/BowlOfSoup/file-changed-on-disk#readme"
+}

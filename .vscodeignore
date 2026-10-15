@@ -1,0 +1,11 @@
+.github/**
+.vscode/**
+.vscode-test/**
+.vscode-test.mjs
+test/**
+node_modules/**
+eslint.config.mjs
+jsconfig.json
+*.vsix
+.gitignore
+images/icon.svg
